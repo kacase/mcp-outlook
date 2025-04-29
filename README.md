@@ -42,7 +42,7 @@ For Claude Desktop, create or update your configuration in `~/.claude/config.jso
     "outlook": {
       "command": "npx",
       "args": [
-        "@kacase/mcp-outlook"
+        "mcp_outlook"
       ],
       "env": {
         "TENANT_ID": "your-tenant-id",

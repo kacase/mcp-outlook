@@ -1,10 +1,10 @@
 {
-  "name": "outlook_mcp",
+  "name": "mcp_outlook",
   "version": "1.0.0",
   "main": "index.js",
   "type": "module",
   "bin": {
-    "outlook-mcp": "./build/index.js"
+    "outlook-mcp": "build/index.js"
   },
   "scripts": {
     "build": "tsc && chmod 755 build/index.js",
