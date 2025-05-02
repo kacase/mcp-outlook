@@ -17,7 +17,7 @@ const openBrowser = async (url: string) => {
 const tokenRequest = {
     ...loginRequest,
     openBrowser,
-    successTemplate: '<h1>Successfully signed in!</h1> <p>You can close this window now.</p><script>window.close();</script>',
+    successTemplate: '<h1>Successfully signed in!</h1> <p>You can close this window now.',
     errorTemplate:
         '<h1>Oops! Something went wrong</h1> <p>Navigate back to the application and check the console for more information.</p>',
 };
