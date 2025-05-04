@@ -166,27 +166,53 @@ export const ListEmailsQuerySchema = z.object({
 
 export type ListEmailsQuery = z.infer<typeof ListEmailsQuerySchema>;
 
-// Schema for user search
-export const UserSchema = z.object({
+// Schema for People API response
+export const PersonTypeSchema = z.object({
+  class: z.enum(["Person", "Group"]),
+  subclass: z.enum(["OrganizationUser", "UnifiedGroup"]).optional()
+});
+
+export const ScoredEmailAddressSchema = z.object({
+  address: z.string(),
+  relevanceScore: z.number().optional()
+});
+
+export const PhoneSchema = z.object({
+  type: z.string().optional(), // business, mobile, home, etc.
+  number: z.string()
+});
+
+export const PersonSchema = z.object({
   id: z.string(),
   displayName: z.string().optional(),
-  givenName: z.string().optional(),
-  surname: z.string().optional(),
-  userPrincipalName: z.string(),
-  mail: z.string().optional(),
-  jobTitle: z.string().optional(),
-  department: z.string().optional()
+  givenName: z.string().nullable(),
+  surname: z.string().nullable(),
+  birthday: z.string().optional(),
+  personNotes: z.string().optional(),
+  isFavorite: z.boolean().optional(),
+  jobTitle: z.string().nullable(),
+  companyName: z.string().nullable(),
+  department: z.string().nullable(),
+  officeLocation: z.string().nullable(),
+  profession: z.string().optional(),
+  userPrincipalName: z.string().optional(),
+  imAddress: z.string().nullable(),
+  scoredEmailAddresses: z.array(ScoredEmailAddressSchema).optional(),
+  phones: z.array(PhoneSchema).optional(),
+  personType: PersonTypeSchema.optional()
 });
 
-export type User = z.infer<typeof UserSchema>;
+export type Person = z.infer<typeof PersonSchema>;
 
 // Schema for user search query parameters
-export const SearchUsersQuerySchema = z.object({
-  searchTerm: z.string().describe("The term to search for users by name"),
-  top: z.number().int().positive().optional().describe("The maximum number of users to return")
+export const SearchPeopleQuerySchema = z.object({
+  searchTerm: z.string().optional().describe("The term to search for people by name or email (using $search)"),
+  filter: z.string().optional().describe("Filter criteria for the people search (using $filter)"),
+  top: z.number().int().positive().optional().describe("The maximum number of people to return"),
+  select: z.string().optional().describe("Properties to include in the response")
 });
 
-export type SearchUsersQuery = z.infer<typeof SearchUsersQuerySchema>;
+export type SearchPeopleQuery = z.infer<typeof SearchPeopleQuerySchema>;
 
 // Schema for schedule information
 export const ScheduleInformationSchema = z.object({

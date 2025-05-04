@@ -8,7 +8,7 @@ import {
   SendEmailSchema,
   ListEventsQuerySchema,
   ListEmailsQuerySchema,
-  SearchUsersQuerySchema,
+  SearchPeopleQuerySchema,
   GetScheduleQuerySchema,
   FindMeetingTimesQuerySchema
 } from "./types.js";
@@ -464,28 +464,40 @@ server.tool(
   }
 );
 
-// ============= User Tools =============
+// ============= People Tools =============
 
 server.tool(
-  "searchUsers",
-  "Searches for users by name within the organization",
-  SearchUsersQuerySchema.shape,
+  "searchPeople",
+  "Searches for people relevant to the current user (colleagues, contacts, etc.)",
+  SearchPeopleQuerySchema.shape,
   async (params) => {
     try {
-      // Search users using Graph API
-      const users = await graphClient.searchUsers({
+      // Search people using Graph API
+      const people = await graphClient.searchPeople({
         searchTerm: params.searchTerm,
+        filter: params.filter,
+        select: params.select,
         top: params.top
       });
 
-      // Format users for display
-      const formattedUsers = users.map(user => {
+      // Format people for display
+      const formattedPeople = people.map(person => {
+        // Get primary email from scored emails
+        const primaryEmail = person.scoredEmailAddresses && person.scoredEmailAddresses.length > 0
+          ? person.scoredEmailAddresses[0].address
+          : '';
+
+        // Extract person type info
+        const personClass = person.personType?.class || 'Unknown';
+        const personSubclass = person.personType?.subclass || '';
+        
         return {
-          id: user.id,
-          displayName: user.displayName || 'Unknown',
-          email: user.mail || user.userPrincipalName,
-          jobTitle: user.jobTitle || '',
-          department: user.department || ''
+          id: person.id,
+          displayName: person.displayName || 'Unknown',
+          email: primaryEmail,
+          jobTitle: person.jobTitle || '',
+          department: person.department || '',
+          type: `${personClass}${personSubclass ? ` (${personSubclass})` : ''}`
         };
       });
 
@@ -493,7 +505,7 @@ server.tool(
         content: [
           {
             type: "text",
-            text: JSON.stringify(formattedUsers, null, 2)
+            text: JSON.stringify(formattedPeople, null, 2)
           }
         ]
       };
@@ -502,7 +514,7 @@ server.tool(
         content: [
           {
             type: "text",
-            text: `Error searching users: ${error instanceof Error ? error.message : String(error)}`
+            text: `Error searching people: ${error instanceof Error ? error.message : String(error)}`
           }
         ],
         isError: true
@@ -512,21 +524,21 @@ server.tool(
 );
 
 server.tool(
-  "getUser",
-  "Gets details of a specific user by ID",
+  "getPerson",
+  "Gets details of a specific person by ID",
   {
-    userId: z.string().describe("ID of the user to retrieve")
+    personId: z.string().describe("ID of the person to retrieve")
   },
   async (params) => {
     try {
-      // Get user using Graph API
-      const user = await graphClient.getUser(params.userId);
+      // Get person using Graph API
+      const person = await graphClient.getPerson(params.personId);
       
       return {
         content: [
           {
             type: "text",
-            text: JSON.stringify(user, null, 2)
+            text: JSON.stringify(person, null, 2)
           }
         ]
       };
@@ -535,7 +547,7 @@ server.tool(
         content: [
           {
             type: "text",
-            text: `Error getting user: ${error instanceof Error ? error.message : String(error)}`
+            text: `Error getting person: ${error instanceof Error ? error.message : String(error)}`
           }
         ],
         isError: true

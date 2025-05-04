@@ -8,8 +8,8 @@ import {
   EmailMessage,
   SendEmailParams,
   ListEmailsQuery,
-  User,
-  SearchUsersQuery,
+  Person,
+  SearchPeopleQuery,
   GetScheduleQuery,
   ScheduleInformation,
   FindMeetingTimesQuery,
@@ -241,22 +241,34 @@ export class GraphClient {
     await this.client.api(`/me/messages/${messageId}`).delete();
   }
 
-  // ============= User Methods =============
+  // ============= People Methods =============
 
   /**
-   * Search for users by name
+   * Search for people relevant to the current user
    */
-  async searchUsers(query: SearchUsersQuery): Promise<User[]> {
+  async searchPeople(query: SearchPeopleQuery): Promise<Person[]> {
     await this.ensureAuthenticated();
 
-    let endpoint = '/users';
+    let endpoint = '/me/people';
     const queryParams = new URLSearchParams();
 
-    // Add filter to search by name
-    queryParams.append('$filter', `startswith(displayName,'${query.searchTerm}') or startswith(givenName,'${query.searchTerm}') or startswith(surname,'${query.searchTerm}')`);
+    // Add search parameter if provided
+    if (query.searchTerm) {
+      queryParams.append('$search', `"${query.searchTerm}"`);
+    }
     
-    // Add select to get relevant fields
-    queryParams.append('$select', 'id,displayName,givenName,surname,userPrincipalName,mail,jobTitle,department');
+    // Add filter if provided
+    if (query.filter) {
+      queryParams.append('$filter', query.filter);
+    }
+
+    // Add select parameter if provided
+    if (query.select) {
+      queryParams.append('$select', query.select);
+    } else {
+      // Default select to get relevant fields
+      queryParams.append('$select', 'id,displayName,givenName,surname,userPrincipalName,scoredEmailAddresses,jobTitle,department,personType');
+    }
 
     // Add top parameter if provided
     if (query.top) {
@@ -271,12 +283,12 @@ export class GraphClient {
   }
 
   /**
-   * Get a single user by ID
+   * Get a single person by ID
    */
-  async getUser(userId: string): Promise<User> {
+  async getPerson(personId: string): Promise<Person> {
     await this.ensureAuthenticated();
 
-    const response = await this.client.api(`/users/${userId}`).select('id,displayName,givenName,surname,userPrincipalName,mail,jobTitle,department').get();
+    const response = await this.client.api(`/me/people/${personId}`).get();
     return response;
   }
 
