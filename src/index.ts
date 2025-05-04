@@ -7,7 +7,10 @@ import {
   CreateEventSchema, 
   SendEmailSchema,
   ListEventsQuerySchema,
-  ListEmailsQuerySchema
+  ListEmailsQuerySchema,
+  SearchUsersQuerySchema,
+  GetScheduleQuerySchema,
+  FindMeetingTimesQuerySchema
 } from "./types.js";
 import { graphClient } from "./graphClient.js";
 
@@ -453,6 +456,190 @@ server.tool(
           {
             type: "text",
             text: `Error deleting email: ${error instanceof Error ? error.message : String(error)}`
+          }
+        ],
+        isError: true
+      };
+    }
+  }
+);
+
+// ============= User Tools =============
+
+server.tool(
+  "searchUsers",
+  "Searches for users by name within the organization",
+  SearchUsersQuerySchema.shape,
+  async (params) => {
+    try {
+      // Search users using Graph API
+      const users = await graphClient.searchUsers({
+        searchTerm: params.searchTerm,
+        top: params.top
+      });
+
+      // Format users for display
+      const formattedUsers = users.map(user => {
+        return {
+          id: user.id,
+          displayName: user.displayName || 'Unknown',
+          email: user.mail || user.userPrincipalName,
+          jobTitle: user.jobTitle || '',
+          department: user.department || ''
+        };
+      });
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(formattedUsers, null, 2)
+          }
+        ]
+      };
+    } catch (error) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Error searching users: ${error instanceof Error ? error.message : String(error)}`
+          }
+        ],
+        isError: true
+      };
+    }
+  }
+);
+
+server.tool(
+  "getUser",
+  "Gets details of a specific user by ID",
+  {
+    userId: z.string().describe("ID of the user to retrieve")
+  },
+  async (params) => {
+    try {
+      // Get user using Graph API
+      const user = await graphClient.getUser(params.userId);
+      
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(user, null, 2)
+          }
+        ]
+      };
+    } catch (error) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Error getting user: ${error instanceof Error ? error.message : String(error)}`
+          }
+        ],
+        isError: true
+      };
+    }
+  }
+);
+
+// ============= Schedule Tools =============
+
+server.tool(
+  "getSchedule",
+  "Gets free/busy schedule information for specified users",
+  GetScheduleQuerySchema.shape,
+  async (params) => {
+    try {
+      // Get schedule using Graph API
+      const scheduleInfo = await graphClient.getSchedule(params);
+      
+      // Format schedule for display
+      const formattedSchedule = scheduleInfo.map(schedule => {
+        const availabilityMap: Record<string, string> = {
+          '0': 'free',
+          '1': 'tentative',
+          '2': 'busy',
+          '3': 'out of office',
+          '4': 'working elsewhere'
+        };
+        
+        // Parse the availabilityView string which is a sequence of digits
+        const parsedAvailability = schedule.availabilityView.split('').map(status => 
+          availabilityMap[status] || 'unknown'
+        );
+        
+        return {
+          userId: schedule.scheduleId,
+          availability: parsedAvailability,
+          detailedItems: schedule.scheduleItems || []
+        };
+      });
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(formattedSchedule, null, 2)
+          }
+        ]
+      };
+    } catch (error) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Error getting schedule: ${error instanceof Error ? error.message : String(error)}`
+          }
+        ],
+        isError: true
+      };
+    }
+  }
+);
+
+server.tool(
+  "findMeetingTimes",
+  "Finds suitable meeting times for a group of attendees",
+  FindMeetingTimesQuerySchema.shape,
+  async (params) => {
+    try {
+      // Find meeting times using Graph API
+      const suggestions = await graphClient.findMeetingTimes(params);
+      
+      // Format suggestions for display
+      const formattedSuggestions = suggestions.map(suggestion => {
+        const startTime = new Date(suggestion.meetingTimeSlot.start.dateTime);
+        const endTime = new Date(suggestion.meetingTimeSlot.end.dateTime);
+        
+        return {
+          startTime: startTime.toLocaleString(),
+          endTime: endTime.toLocaleString(),
+          timeZone: suggestion.meetingTimeSlot.start.timeZone,
+          confidence: suggestion.confidence || 0,
+          organizerAvailability: suggestion.organizerAvailability || 'unknown',
+          attendeeAvailability: suggestion.attendeeAvailability?.map(a => ({
+            attendee: a.attendee.emailAddress.address,
+            availability: a.availability
+          })) || []
+        };
+      });
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(formattedSuggestions, null, 2)
+          }
+        ]
+      };
+    } catch (error) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Error finding meeting times: ${error instanceof Error ? error.message : String(error)}`
           }
         ],
         isError: true

@@ -165,3 +165,124 @@ export const ListEmailsQuerySchema = z.object({
 });
 
 export type ListEmailsQuery = z.infer<typeof ListEmailsQuerySchema>;
+
+// Schema for user search
+export const UserSchema = z.object({
+  id: z.string(),
+  displayName: z.string().optional(),
+  givenName: z.string().optional(),
+  surname: z.string().optional(),
+  userPrincipalName: z.string(),
+  mail: z.string().optional(),
+  jobTitle: z.string().optional(),
+  department: z.string().optional()
+});
+
+export type User = z.infer<typeof UserSchema>;
+
+// Schema for user search query parameters
+export const SearchUsersQuerySchema = z.object({
+  searchTerm: z.string().describe("The term to search for users by name"),
+  top: z.number().int().positive().optional().describe("The maximum number of users to return")
+});
+
+export type SearchUsersQuery = z.infer<typeof SearchUsersQuerySchema>;
+
+// Schema for schedule information
+export const ScheduleInformationSchema = z.object({
+  scheduleId: z.string(),
+  availabilityView: z.string(),
+  scheduleItems: z.array(
+    z.object({
+      status: z.enum(["free", "tentative", "busy", "oof", "workingElsewhere"]),
+      start: z.object({
+        dateTime: z.string(),
+        timeZone: z.string()
+      }),
+      end: z.object({
+        dateTime: z.string(),
+        timeZone: z.string()
+      })
+    })
+  ).optional()
+});
+
+export type ScheduleInformation = z.infer<typeof ScheduleInformationSchema>;
+
+// Schema for getting free/busy schedule
+export const GetScheduleQuerySchema = z.object({
+  schedules: z.array(z.string()).describe("List of user IDs or email addresses"),
+  startTime: z.object({
+    dateTime: z.string(),
+    timeZone: z.string()
+  }).describe("Start time for the schedule query"),
+  endTime: z.object({
+    dateTime: z.string(),
+    timeZone: z.string()
+  }).describe("End time for the schedule query"),
+  availabilityViewInterval: z.number().int().positive().optional().describe("Length of time slots in minutes")
+});
+
+export type GetScheduleQuery = z.infer<typeof GetScheduleQuerySchema>;
+
+// Schema for meeting time suggestions
+export const MeetingTimeSuggestionSchema = z.object({
+  confidence: z.number().optional(),
+  organizerAvailability: z.enum(["free", "tentative", "busy", "oof", "workingElsewhere"]).optional(),
+  suggestionReason: z.string().optional(),
+  meetingTimeSlot: z.object({
+    start: z.object({
+      dateTime: z.string(),
+      timeZone: z.string()
+    }),
+    end: z.object({
+      dateTime: z.string(),
+      timeZone: z.string()
+    })
+  }),
+  attendeeAvailability: z.array(
+    z.object({
+      attendee: z.object({
+        emailAddress: z.object({
+          address: z.string(),
+          name: z.string().optional()
+        })
+      }),
+      availability: z.enum(["free", "tentative", "busy", "oof", "workingElsewhere"])
+    })
+  ).optional()
+});
+
+export type MeetingTimeSuggestion = z.infer<typeof MeetingTimeSuggestionSchema>;
+
+// Schema for finding meeting times
+export const FindMeetingTimesQuerySchema = z.object({
+  attendees: z.array(
+    z.object({
+      emailAddress: z.object({
+        address: z.string(),
+        name: z.string().optional()
+      }),
+      type: z.enum(["required", "optional"]).optional()
+    })
+  ).describe("List of attendees for the meeting"),
+  timeConstraint: z.object({
+    timeslots: z.array(
+      z.object({
+        start: z.object({
+          dateTime: z.string(),
+          timeZone: z.string()
+        }),
+        end: z.object({
+          dateTime: z.string(),
+          timeZone: z.string()
+        })
+      })
+    )
+  }).describe("Time constraints for the meeting"),
+  meetingDuration: z.string().optional().describe("Duration of the meeting in ISO8601 format (e.g., 'PT1H' for 1 hour)"),
+  maxCandidates: z.number().int().positive().optional().describe("Maximum number of meeting time suggestions"),
+  minimumAttendeePercentage: z.number().optional().describe("Minimum percentage of attendees that need to be available")
+});
+
+export type FindMeetingTimesQuery = z.infer<typeof FindMeetingTimesQuerySchema>;

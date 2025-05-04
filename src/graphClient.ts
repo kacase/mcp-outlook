@@ -7,7 +7,13 @@ import {
   ListEventsQuery,
   EmailMessage,
   SendEmailParams,
-  ListEmailsQuery
+  ListEmailsQuery,
+  User,
+  SearchUsersQuery,
+  GetScheduleQuery,
+  ScheduleInformation,
+  FindMeetingTimesQuery,
+  MeetingTimeSuggestion
 } from './types.js';
 
 // Define a simple function provider
@@ -233,6 +239,92 @@ export class GraphClient {
     await this.ensureAuthenticated();
 
     await this.client.api(`/me/messages/${messageId}`).delete();
+  }
+
+  // ============= User Methods =============
+
+  /**
+   * Search for users by name
+   */
+  async searchUsers(query: SearchUsersQuery): Promise<User[]> {
+    await this.ensureAuthenticated();
+
+    let endpoint = '/users';
+    const queryParams = new URLSearchParams();
+
+    // Add filter to search by name
+    queryParams.append('$filter', `startswith(displayName,'${query.searchTerm}') or startswith(givenName,'${query.searchTerm}') or startswith(surname,'${query.searchTerm}')`);
+    
+    // Add select to get relevant fields
+    queryParams.append('$select', 'id,displayName,givenName,surname,userPrincipalName,mail,jobTitle,department');
+
+    // Add top parameter if provided
+    if (query.top) {
+      queryParams.append('$top', query.top.toString());
+    }
+
+    // Add query string to endpoint
+    endpoint += `?${queryParams.toString()}`;
+
+    const response = await this.client.api(endpoint).get();
+    return response.value;
+  }
+
+  /**
+   * Get a single user by ID
+   */
+  async getUser(userId: string): Promise<User> {
+    await this.ensureAuthenticated();
+
+    const response = await this.client.api(`/users/${userId}`).select('id,displayName,givenName,surname,userPrincipalName,mail,jobTitle,department').get();
+    return response;
+  }
+
+  // ============= Schedule Methods =============
+
+  /**
+   * Get free/busy schedule for users
+   */
+  async getSchedule(query: GetScheduleQuery): Promise<ScheduleInformation[]> {
+    await this.ensureAuthenticated();
+
+    const requestBody = {
+      schedules: query.schedules,
+      startTime: query.startTime,
+      endTime: query.endTime,
+      availabilityViewInterval: query.availabilityViewInterval || 30 // Default to 30-minute intervals
+    };
+
+    const response = await this.client.api('/me/calendar/getSchedule').post(requestBody);
+    return response.value;
+  }
+
+  /**
+   * Find meeting times for a group of users
+   */
+  async findMeetingTimes(query: FindMeetingTimesQuery): Promise<MeetingTimeSuggestion[]> {
+    await this.ensureAuthenticated();
+
+    // Use a type with index signature to allow dynamic property assignment
+    const requestBody: {
+      attendees: typeof query.attendees;
+      timeConstraint: typeof query.timeConstraint;
+      meetingDuration: string;
+      maxCandidates: number;
+      [key: string]: any;
+    } = {
+      attendees: query.attendees,
+      timeConstraint: query.timeConstraint,
+      meetingDuration: query.meetingDuration || 'PT1H', // Default to 1 hour
+      maxCandidates: query.maxCandidates || 10
+    };
+
+    if (query.minimumAttendeePercentage) {
+      requestBody.minimumAttendeePercentage = query.minimumAttendeePercentage;
+    }
+
+    const response = await this.client.api('/me/findMeetingTimes').post(requestBody);
+    return response.meetingTimeSuggestions || [];
   }
 }
 
