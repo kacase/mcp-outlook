@@ -42,5 +42,6 @@ export const loginRequest = {
         'Mail.Send',
         'Mail.ReadWrite',
         'Mail.Read',
+        'People.Read',
     ],
 };
