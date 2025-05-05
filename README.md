@@ -46,7 +46,7 @@ For Claude Desktop, create or update your configuration in `~/.claude/config.jso
         "mcp_outlook"
       ],
       "env": {
-        "ATHORITY": "your-authority-id",
+        "AUTHORITY": "your-authority-id",
         "CLIENT_ID": "your-client-id",
         "MCP_SERVER_NAME": "outlook-mcp",
         "MCP_SERVER_VERSION": "1.0.0"
@@ -106,7 +106,7 @@ Configure your MCP locally
         "/ABSOLUTE/PATH/TO/outlook_mcp/build/index.js"
       ],
       "env": {
-        "AUTHRORITY": "your-authority-id",
+        "AUTHORITY": "your-authority-id",
         "CLIENT_ID": "your-client-id",
         "MCP_SERVER_NAME": "outlook-mcp",
         "MCP_SERVER_VERSION": "1.0.0"
