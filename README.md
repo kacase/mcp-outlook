@@ -28,10 +28,11 @@ A Model Context Protocol server that integrates with Microsoft Outlook through M
      - Choose Microsoft Graph and type delegated, as we will act on the users behalf
      - For Calendar: "Calendars.Read" and "Calendars.ReadWrite"
      - For Email: "Mail.Read", "Mail.ReadWrite" and "Mail.Send"
+     - For People: "People.Read"
 
 2. Note the values from your Azure app registration (Overview) to use for the MCP config as environment variables:
   - Client ID (Application (client) ID)
-  - Tenant ID (Directory (tenant) ID)
+  - Authority ID (Directory (tenant) ID)
 
 3. Register the MCP server
 For Claude Desktop, create or update your configuration in `~/.claude/config.json`:
@@ -45,7 +46,7 @@ For Claude Desktop, create or update your configuration in `~/.claude/config.jso
         "mcp_outlook"
       ],
       "env": {
-        "TENANT_ID": "your-tenant-id",
+        "ATHORITY": "your-authority-id",
         "CLIENT_ID": "your-client-id",
         "MCP_SERVER_NAME": "outlook-mcp",
         "MCP_SERVER_VERSION": "1.0.0"
@@ -75,6 +76,10 @@ Make sure to replace the path and environment variables with your actual values.
 - **markEmailAsUnread**: Marks an email message as unread
 - **deleteEmail**: Deletes an email message
 
+## People Tools
+- **searchPeople** Find a person in the organisation or your recent contacts
+- **getPerson** Get information on a person
+
 ### Resources
 - **calendar**: Resource containing calendar events data
 - **inbox**: Resource containing inbox messages data
@@ -101,7 +106,7 @@ Configure your MCP locally
         "/ABSOLUTE/PATH/TO/outlook_mcp/build/index.js"
       ],
       "env": {
-        "TENANT_ID": "your-tenant-id",
+        "AUTHRORITY": "your-authority-id",
         "CLIENT_ID": "your-client-id",
         "MCP_SERVER_NAME": "outlook-mcp",
         "MCP_SERVER_VERSION": "1.0.0"

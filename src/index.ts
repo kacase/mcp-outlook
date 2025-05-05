@@ -78,7 +78,7 @@ server.tool(
 
 server.tool(
   "createCalendarEvent",
-  "Creates a new calendar event",
+  "Creates a new calendar event. Ensure availability and user confirmation before sending invites.",
   CreateEventSchema.shape,
   async (params) => {
     try {
@@ -613,7 +613,7 @@ server.tool(
 
 server.tool(
   "findMeetingTimes",
-  "Finds suitable meeting times for a group of attendees",
+  "Finds suitable meeting times for a group of attendees. Correct E-Mail addresses are required.",
   FindMeetingTimesQuerySchema.shape,
   async (params) => {
     try {
@@ -712,8 +712,8 @@ server.resource(
 
 // Add an empty prompt to handle prompts/list
 server.prompt(
-  "outlook-empty-prompt",
-  "Empty prompt",
+  "outlook-schedule-meeting-prompt",
+  "A prompt to schedule a meeting with multiple attendees.",
   { param: z.string().optional().describe("Not used") },
   async () => {
     return {
