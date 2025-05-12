@@ -1,6 +1,6 @@
 {
   "name": "mcp_outlook",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "main": "index.js",
   "type": "module",
   "bin": {
