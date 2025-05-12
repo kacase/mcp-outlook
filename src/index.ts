@@ -10,7 +10,9 @@ import {
   ListEmailsQuerySchema,
   SearchPeopleQuerySchema,
   GetScheduleQuerySchema,
-  FindMeetingTimesQuerySchema
+  FindMeetingTimesQuerySchema,
+  AddAttendeesToEventSchema,
+  AddAttendeesToEventParams
 } from "./types.js";
 import { graphClient } from "./graphClient.js";
 
@@ -722,6 +724,35 @@ server.prompt(
   }
 );
 
+// New tool to add attendees to a calendar event
+server.tool(
+  "addAttendeesToCalendarEvent",
+  "Adds one or more attendees to an existing calendar event. Fetches the event, merges new attendees with existing ones (avoiding duplicates), and updates the event.",
+  AddAttendeesToEventSchema.shape,
+  async (params: AddAttendeesToEventParams) => {
+    try {
+      const updatedEvent = await graphClient.addAttendeesToEvent(params.eventId, params.attendees);
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(updatedEvent, null, 2)
+          }
+        ]
+      };
+    } catch (error) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Error adding attendees to calendar event: ${error instanceof Error ? error.message : String(error)}`
+          }
+        ],
+        isError: true
+      };
+    }
+  }
+);
 
 // Connect the server to stdio transport
 server.connect(new StdioServerTransport());
