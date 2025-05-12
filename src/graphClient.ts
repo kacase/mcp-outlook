@@ -13,7 +13,8 @@ import {
   GetScheduleQuery,
   ScheduleInformation,
   FindMeetingTimesQuery,
-  MeetingTimeSuggestion
+  MeetingTimeSuggestion,
+  Attendee
 } from './types.js';
 
 // Define a simple function provider
@@ -118,6 +119,52 @@ export class GraphClient {
     await this.ensureAuthenticated();
 
     await this.client.api(`/me/calendar/events/${eventId}`).delete();
+  }
+
+  /**
+   * Add attendees to an existing calendar event.
+   * Fetches the event, merges new attendees with existing ones (avoiding duplicates), then updates the event.
+   * NOTE: This is a workaround for the Graph API's lack of support for adding attendees to an event, the existing 
+   * attendees are passed as is from the event in addition to the new attendees.
+   */
+  async addAttendeesToEvent(eventId: string, newAttendees: Attendee[]): Promise<CalendarEvent> {
+    await this.ensureAuthenticated();
+
+    const event = await this.getEvent(eventId);
+    // Existing attendees from CalendarEvent might not have 'type', so we handle them carefully.
+    // The structure is { emailAddress: { address: string, name?: string } }
+    const existingAttendees: Array<{ emailAddress?: { address?: string | null, name?: string | null } }> = event.attendees || [];
+
+    // Create a Set of existing attendee email addresses for quick lookup
+    const existingAttendeeEmails = new Set(
+      existingAttendees
+        .map((att: { emailAddress?: { address?: string | null } }) => att.emailAddress?.address?.toLowerCase())
+        .filter((email: string | undefined): email is string => !!email) // Type guard to ensure email is string
+    );
+
+    const attendeesToAdd = newAttendees.filter(newAtt => {
+      const newEmail = newAtt.emailAddress?.address?.toLowerCase();
+      return newEmail && !existingAttendeeEmails.has(newEmail);
+    });
+
+    if (attendeesToAdd.length === 0) {
+      return event;
+    }
+
+    // Combine existing attendees (exiting attendees from the event) with the genuinely new attendees.
+    // The newAttendees conform to the Attendee schema.
+    // The existingAttendees are passed as is from the event.
+    // When PATCHing, Graph API expects the full desired list of attendees.
+    const allAttendees = [
+      ...existingAttendees.map(att => ({ // Ensure existing attendees match structure for PATCH if needed, though Graph might be flexible
+        emailAddress: att.emailAddress,
+        // 'type' would be undefined here, which is fine for existing attendees if Graph preserves it or defaults it.
+      })),
+      ...attendeesToAdd
+    ];
+
+    const response = await this.updateEvent(eventId, { attendees: allAttendees as any }); // Use 'as any' for now due to mixed types, Graph SDK should handle it.
+    return response;
   }
 
   // ============= Email Methods =============

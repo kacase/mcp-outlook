@@ -60,6 +60,28 @@ export const CreateEventSchema = z.object({
 
 export type CreateEventParams = z.infer<typeof CreateEventSchema>;
 
+// Schema for Attendee Type )
+export const AttendeeTypeSchema = z.enum(["required", "optional", "resource"]);
+
+// Schema for a single Attendee 
+export const AttendeeSchema = z.object({
+  emailAddress: z.object({
+    address: z.string().describe("The email address of the attendee."),
+    name: z.string().optional().describe("The display name of the attendee.")
+  }),
+  type: AttendeeTypeSchema.optional().describe("The type of attendee. Default is 'required'.")
+});
+
+export type Attendee = z.infer<typeof AttendeeSchema>;
+
+// Schema for adding attendees to an event
+export const AddAttendeesToEventSchema = z.object({
+  eventId: z.string().describe("ID of the calendar event to add attendees to."),
+  attendees: z.array(AttendeeSchema).min(1).describe("List of attendees to add to the event.")
+});
+
+export type AddAttendeesToEventParams = z.infer<typeof AddAttendeesToEventSchema>;
+
 // Schema for listing events query parameters
 export const ListEventsQuerySchema = z.object({
   startDateTime: z.string().optional(),
