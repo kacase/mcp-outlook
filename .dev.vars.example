@@ -1,0 +1,5 @@
+# Azure/Microsoft Entra Configuration
+AZURE_CLIENT_SECRET="your-azure-client-secret"
+
+# For local development, copy this file to .dev.vars and fill in your actual values
+# All other variables are configured in wrangler.toml

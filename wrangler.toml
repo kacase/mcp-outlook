@@ -1,0 +1,20 @@
+name = "outlook-mcp-remote"
+main = "build/worker.js"
+compatibility_date = "2025-06-14"
+compatibility_flags = ["nodejs_compat"]
+
+# KV namespace for storing authentication state
+[[kv_namespaces]]
+binding = "AUTH_STATE"
+id = "your-kv-namespace-id"
+preview_id = "your-preview-kv-namespace-id"
+
+[vars]
+# Public environment variables
+AZURE_CLIENT_ID = "your-azure-client-id"
+AZURE_TENANT_ID = "your-azure-tenant-id"
+# Comma-separated list of allowed user emails
+ALLOWED_USER_EMAILS = "user1@domain.com,user2@domain.com"
+
+# Secrets (set via wrangler secret put)
+# AZURE_CLIENT_SECRET = "your-azure-client-secret"

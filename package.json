@@ -8,7 +8,10 @@
   },
   "scripts": {
     "build": "tsc && chmod 755 build/index.js",
+    "build:worker": "tsc",
     "dev": "tsc -w",
+    "dev:worker": "wrangler dev",
+    "deploy": "wrangler deploy",
     "lint": "eslint . --ext .ts"
   },
   "files": [
@@ -21,11 +24,14 @@
   "dependencies": {
     "@azure/identity": "^3.4.1",
     "@azure/msal-node": "^3.5.1",
+    "@cloudflare/workers-types": "^4.20250614.0",
     "@microsoft/microsoft-graph-client": "^3.0.7",
     "@modelcontextprotocol/sdk": "^1.10.2",
     "express": "^5.1.0",
     "isomorphic-fetch": "^3.0.0",
     "open": "^10.1.1",
+    "workers-mcp": "^0.0.13",
+    "wrangler": "^4.20.0",
     "zod": "^3.24.3"
   },
   "devDependencies": {
