@@ -24,7 +24,6 @@ export class MicrosoftTokenValidator {
     this.jwksClient = jwksClient({
       jwksUri: `https://login.microsoftonline.com/${this.authority}/discovery/v2.0/keys`,
       cache: true,
-      cacheMaxAge: 12 * 60 * 60 * 1000, // 12 hours
       rateLimit: true,
       jwksRequestsPerMinute: 10
     });
