@@ -38,3 +38,13 @@ This project is a model context protocol server for Microsoft Outlook. It allows
 
 The server uses the Microsoft Graph API to interact with Outlook's calendar and email systems.
 
+## OAuth and Authentication Notes
+- Reference implementation: https://raw.githubusercontent.com/modelcontextprotocol/typescript-sdk/refs/heads/main/src/examples/server/simpleStreamableHttp.ts
+- Investigating Microsoft OAuth middleware and Entra ID integration
+- Discussion reference: https://github.com/modelcontextprotocol/modelcontextprotocol/pull/284
+
+## MSAL and Authorization Specifications
+- MSAL Tutorial: https://learn.microsoft.com/en-us/entra/identity-platform/tutorial-v2-nodejs-webapp-msal
+- Authorization Specification: https://modelcontextprotocol.io/specification/2025-03-26/basic/authorization
+- Use official Microsoft packages for lean implementation
+- Implement streamable HTTP as per: https://modelcontextprotocol.io/specification/draft/basic/transports#streamable-http
