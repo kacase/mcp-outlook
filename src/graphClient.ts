@@ -59,10 +59,12 @@ export class GraphClient {
 
     let endpoint = '/me/calendar/events';
     const queryParams = new URLSearchParams();
+    let request = this.client.api(endpoint);
 
-    // Add query parameters if provided
+    // calendarView expands recurring series into occurrences within the requested window.
     if (query.startDateTime && query.endDateTime) {
-      queryParams.append('$filter', `start/dateTime ge '${query.startDateTime}' and end/dateTime le '${query.endDateTime}'`);
+      endpoint = `/me/calendarView?startDateTime=${encodeURIComponent(query.startDateTime)}&endDateTime=${encodeURIComponent(query.endDateTime)}`;
+      request = this.client.api(endpoint);
     }
 
     if (query.top) {
@@ -73,12 +75,11 @@ export class GraphClient {
       queryParams.append('$orderby', query.orderBy);
     }
 
-    // Add query string to endpoint if we have parameters
     if (queryParams.toString()) {
-      endpoint += `?${queryParams.toString()}`;
+      request = request.query(Object.fromEntries(queryParams.entries()));
     }
 
-    const response = await this.client.api(endpoint).get();
+    const response = await request.get();
     return response.value;
   }
 
