@@ -383,7 +383,7 @@ export class GraphClient {
     }
 
     const response = await this.client.api('/me/findMeetingTimes').post(requestBody);
-    return response.meetingTimeSuggestions || [];
+    return response.meetingTimeSuggestionsResult?.meetingTimeSuggestions || [];
   }
 }
 

@@ -311,11 +311,11 @@ export const FindMeetingTimesQuerySchema = z.object({
         address: z.string(),
         name: z.string().optional()
       }),
-      type: z.enum(["required", "optional"]).optional()
+      type: z.enum(["required", "optional", "resource"]).optional()
     })
   ).describe("List of attendees for the meeting"),
   timeConstraint: z.object({
-    timeslots: z.array(
+    timeSlots: z.array(
       z.object({
         start: z.object({
           dateTime: z.string(),
